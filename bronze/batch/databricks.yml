@@ -1,8 +1,8 @@
-# This is a Databricks asset bundle definition for autoloader.
+# This is a Databricks asset bundle definition for batch.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
-  name: autoloader
-  uuid: 0e5c76b7-2bab-44e4-8751-d138aa11ddd2
+  name: batch
+  uuid: 9c82b034-2c29-4169-9935-af2da63a8d94
 
 include:
   - resources/*.yml
@@ -27,16 +27,16 @@ targets:
       host: https://dbc-dfb14324-e95d.cloud.databricks.com
     variables:
       catalog: bronze
-      schema: default
+      schema: dev
   prod:
     mode: production
     workspace:
       host: https://dbc-dfb14324-e95d.cloud.databricks.com
       # We explicitly deploy to /Workspace/Users/daniel.epr77@gmail.com to make sure we only have a single copy.
-      root_path: /Workspace/src/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Users/daniel.epr77@gmail.com/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: bronze
-      schema: default
+      schema: prod
     permissions:
       - user_name: daniel.epr77@gmail.com
         level: CAN_MANAGE

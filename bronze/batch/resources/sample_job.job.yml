@@ -1,9 +1,9 @@
-# A sample job for autoloader.
+# A sample job for batch.
 
 resources:
   jobs:
     sample_job:
-      name: sample_job
+      name: sample_job_2
 
       trigger:
         # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
@@ -15,19 +15,18 @@ resources:
       #  on_failure:
       #    - your_email@example.com
 
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
       tasks:
-        - task_key: py
-          spark_python_task:
-            python_file: ../src/main.py
-          environment_key: Default
+        - task_key: notebook_task
+          notebook_task:
+            notebook_path: ../src/sample_notebook.ipynb
 
-      queue:
-        enabled: true
-    
       environments:
-        - environment_key: Default
+        - environment_key: default
           spec:
-            environment_version: "4"
-      performance_target: PERFORMANCE_OPTIMIZED
-
-
+            environment_version: "2"

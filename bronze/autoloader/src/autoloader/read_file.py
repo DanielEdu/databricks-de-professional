@@ -12,10 +12,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def process_bronze(target: str):
+def process_bronze(target: str, path: str, chk_path: str, bad_rec_path:str, schema:str):
 
-    source_path = "/Volumes/landing/country/data/"
-    checkpoint_path = "/Volumes/landing/country/checkpoint"
+    source_path = f"/Volumes/landing/{path}"
+    checkpoint_path = f"/Volumes/bronze/{chk_path}"
+    bard_records_path = f"/Volumes/landing/{bad_rec_path}"
 
     logger.info("🚀 Starting Bronze ingestion process")
     logger.info(f"📂 Source path: {source_path}")
@@ -24,8 +25,6 @@ def process_bronze(target: str):
 
     start_time = datetime.now()
 
-    schema = "code STRING, calling_code STRING, country STRING"
-
     try:
         logger.info("🔄 Initializing Auto Loader stream")
 
@@ -33,9 +32,13 @@ def process_bronze(target: str):
             spark.readStream
                 .format("cloudFiles")
                 .option("cloudFiles.format", "json")
+                .option("cloudFiles.maxBytesPerTrigger", "1g")
+                .option("badRecordsPath", bard_records_path)
+                .option("cloudFiles.schemaEvolutionMode", "rescue")     # addNewColumns, rescue, failOnNewColumns, none
                 .schema(schema)
                 .load(source_path)
                 .withColumn("ingesttime", F.current_timestamp())
+                .withColumn("metadata", F.col("_metadata"))
         )
 
         logger.info("✍️ Writing stream to Delta table (append mode)")
@@ -45,8 +48,8 @@ def process_bronze(target: str):
                 .writeStream
                 .format("delta")
                 .option("checkpointLocation", checkpoint_path)
-                .outputMode("append")
                 .option("mergeSchema", True)
+                .outputMode("append")
                 .trigger(availableNow=True)
                 .toTable(target)
         )
